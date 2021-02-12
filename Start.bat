@@ -1,0 +1,1 @@
+cmd /c start Engine\love.exe Game --console
