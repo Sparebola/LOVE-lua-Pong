@@ -67,8 +67,8 @@ local SoundGoal = love.audio.newSource("resource/Goal.mp3", "static")
 SoundGoal:setVolume(0.3)
 
 local ParticlePong = love.graphics.newImage('resource/PongPart.png')
-local ParticleBall = love.graphics.newImage('resource/BallPart.png')
 local TextureBackGround = love.graphics.newImage("resource/BackGround.jpg")
+local TexturePad = love.graphics.newImage("resource/Pad.png")
 
 function love.load()
     timer = Timer()
@@ -108,19 +108,15 @@ function love.load()
     --     end)
     -- end)
  
-	PongPr = love.graphics.newParticleSystem(ParticlePong, 4)
+	PongPr = love.graphics.newParticleSystem(ParticlePong, 64)
 	PongPr:setParticleLifetime(0.3, 0.3) -- Particles live at least 2s and at most 5s.
 	PongPr:setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to black.
-
-    BallPr = love.graphics.newParticleSystem(ParticleBall, 5)
-	BallPr:setParticleLifetime(1, 2) -- Particles live at least 2s and at most 5s.
-	BallPr:setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to black.
 end
 
 function love.draw()
 
     -- Фон
-    love.graphics.draw( TextureBackGround, 0, 0, 0, 1, 1, 0, 0 )
+    --love.graphics.draw( TextureBackGround, 0, 0, 0, 1, 1, 0, 0 )
 
     if not isStart then
         --Остаток до начала игры
@@ -145,24 +141,24 @@ function love.draw()
     end
     
     -- Пады
-    love.graphics.setColor(0, 0, 0, 100)
+    -- love.graphics.setColor(0, 0, 0, 100)
     love.graphics.rectangle('fill', PlayerTab.player1.x, PlayerTab.player1.y, GameSettings.padXWidtch, GameSettings.PadYwidtch)
     love.graphics.rectangle('fill', PlayerTab.player2.x, PlayerTab.player2.y, GameSettings.padXWidtch, GameSettings.PadYwidtch)
 
-    -- Обводка
-    love.graphics.setColor(196, 0, 255, 10)
-    love.graphics.rectangle('line', PlayerTab.player1.x, PlayerTab.player1.y, GameSettings.padXWidtch, GameSettings.PadYwidtch)
-    love.graphics.rectangle('line', PlayerTab.player2.x, PlayerTab.player2.y, GameSettings.padXWidtch, GameSettings.PadYwidtch)
+    -- love.graphics.draw( TexturePad, PlayerTab.player1.x + 20, PlayerTab.player1.y, 1.57, 1, 1, 0, 0, 0, 0 )
+    -- love.graphics.draw( TexturePad, PlayerTab.player2.x - 5, PlayerTab.player2.y, -1.57, 1, 1, 0, 0, 0, 0 )
+
 
     --Откат
     love.graphics.setColor(255, 255, 255, 255)
 
     -- Партикл пада
-    love.graphics.draw(PongPr, Particl.Pad.x, Particl.Pad.y)
+    --love.graphics.draw(PongPr, Particl.Pad.x, Particl.Pad.y)
 
-    love.graphics.draw(BallPr, Particl.Ball.x, Particl.Ball.y)
+    --love.graphics.draw(BallPr, Particl.Ball.x, Particl.Ball.y)
 end
 
+local BallTimer = os.clock()
 function love.update(dt)
     timer:update(dt)
     World:update(dt)
@@ -178,6 +174,14 @@ function love.update(dt)
         -- Остановка координат м¤чу
         Ball.x = Ball.x + (Ball.vector.x * GameSettings.StartSpeed) * dt
         Ball.y = Ball.y + (Ball.vector.y * GameSettings.StartSpeed) * dt
+
+        if os.clock() - BallTimer > 0.3 then
+            BallTimer = os.clock()
+            Particl.Pad.x, Particl.Pad.y = Ball.x, Ball.y
+            PongPr:setParticleLifetime(1, 2)
+            PongPr:setLinearAcceleration(0, 0, 50, 0)
+            PongPr:emit(1)
+        end
         
         local BallYMinusOffset = Ball.y - Ball.width
         local BallYPlusOffset = Ball.y + Ball.width
@@ -206,10 +210,10 @@ function love.update(dt)
                     -- Отскок от пада
                     BallBounced(3 * integer, "x", true)
 
-                    Particl.Pad.x, Particl.Pad.y = (i == 1 and Ball.x - Ball.width + 10 or Ball.x + Ball.width - 10), Ball.y
-                    PongPr:setLinearAcceleration(0, 0, 50 * integer, 0)
-                    PongPr:emit(1)
-                else
+                    --Particl.Pad.x, Particl.Pad.y = (i == 1 and Ball.x - Ball.width + 10 or Ball.x + Ball.width - 10), Ball.y
+                    -- PongPr:setLinearAcceleration(0, 0, 50 * integer, 0)
+                    -- PongPr:emit(1)
+                elseif (i == 1 and BallXMinusOffset < 0 or BallXPlusOffset > Resolution.x) then
                     -- Возврат мяча на старт
                     PlayerTab[PlayerString].score = PlayerTab[PlayerString].score + 1
                     SetBallStart(true)

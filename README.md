@@ -1,1 +1,1 @@
-Изучаем и делаем Pong на LÖVE lua
+Изучаем и делаем Pong на Love lua
